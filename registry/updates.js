@@ -324,6 +324,7 @@ updates.package = function (doc, req) {
     latestCopy(doc)
     readmeTrim(doc)
     descTrim(doc)
+    fixTarball(doc)
 
     if (!doc.maintainers)
       return error("no maintainers. Please upgrade your npm client.")
@@ -352,6 +353,22 @@ updates.package = function (doc, req) {
 
     vers = vers.sort(semver.compare)
     tags.latest = vers.pop()
+  }
+
+  function fixTarball(doc){
+    log(doc);
+    if(!doc || !doc.versions || doc.name.indexOf('@') < 0){
+      return doc;
+    }
+
+    var name = doc.name;
+    var nameReplace = name.replace(/\//g, '%2F');
+    for(var v in doc.versions){
+      if(doc.versions[v].dist && doc.versions[v].dist.tarball){
+        doc.versions[v].dist.tarball = doc.versions[v].dist.tarball.replace(new RegExp(name, 'g'), nameReplace);
+      }
+    }
+    return doc;
   }
 
   // Create new package doc
